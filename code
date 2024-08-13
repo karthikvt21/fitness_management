@@ -1,0 +1,175 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Workout {
+    char exercise[50];
+    int duration; // in minutes
+    struct Workout *next;
+} Workout;
+
+typedef struct User {
+    int id;
+    char name[50];
+    Workout *workoutLog;
+    struct User *next;
+} User;
+
+typedef struct {
+    User *front;
+    User *rear;
+} Queue;
+
+typedef struct {
+    User *top;
+} Stack;
+
+Queue *createQueue() {
+    Queue *queue = (Queue *)malloc(sizeof(Queue));
+    queue->front = NULL;
+    queue->rear = NULL;
+    return queue;
+}
+
+Stack *createStack() {
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    stack->top = NULL;
+    return stack;
+}
+
+void enqueue(Queue *queue, int id, char *name) {
+    User *newUser = (User *)malloc(sizeof(User));
+    newUser->id = id;
+    strcpy(newUser->name, name);
+    newUser->workoutLog = NULL;
+    newUser->next = NULL;
+    if (queue->rear == NULL) {
+        queue->front = newUser;
+        queue->rear = newUser;
+    } else {
+        queue->rear->next = newUser;
+        queue->rear = newUser;
+    }
+}
+
+User *dequeue(Queue *queue) {
+    if (queue->front == NULL) {
+        printf("No users to check out.\n");
+        return NULL;
+    }
+    User *temp = queue->front;
+    queue->front = queue->front->next;
+    if (queue->front == NULL) {
+        queue->rear = NULL;
+    }
+    return temp;
+}
+
+void push(Stack *stack, User *user) {
+    user->next = stack->top;
+    stack->top = user;
+}
+
+User *pop(Stack *stack) {
+    if (stack->top == NULL) {
+        printf("No users to track workouts.\n");
+        return NULL;
+    }
+    User *temp = stack->top;
+    stack->top = stack->top->next;
+    return temp;
+}
+
+void addWorkout(User *user, char *exercise, int duration) {
+    Workout *newWorkout = (Workout *)malloc(sizeof(Workout));
+    strcpy(newWorkout->exercise, exercise);
+    newWorkout->duration = duration;
+    newWorkout->next = user->workoutLog;
+    user->workoutLog = newWorkout;
+}
+
+void printQueue(Queue *queue) {
+    User *current = queue->front;
+    printf("Users currently in the fitness center:\n");
+    while (current != NULL) {
+        printf("ID: %d, Name: %s\n", current->id, current->name);
+        current = current->next;
+    }
+}
+
+void printWorkouts(User *user) {
+    Workout *current = user->workoutLog;
+    printf("Workout log for %s:\n", user->name);
+    while (current != NULL) {
+        printf("Exercise: %s, Duration: %d minutes\n", current->exercise, current->duration);
+        current = current->next;
+    }
+}
+
+int main() {
+    Queue *checkInQueue = createQueue();
+    Stack *workoutStack = createStack();
+    int choice, id, duration;
+    char name[50], exercise[50];
+    while (1) {
+        printf("\nFitness Center Management System\n");
+        printf("1. Check-in\n");
+        printf("2. Track Workout\n");
+        printf("3. Check-out\n");
+        printf("4. View All Users\n");
+        printf("5. View Workout Logs\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter user ID: ");
+                scanf("%d", &id);
+                printf("Enter user name: ");
+                scanf("%s", name);
+                enqueue(checkInQueue, id, name);
+                break;
+            case 2:
+                if (checkInQueue->front == NULL) {
+                    printf("No users to track workouts.\n");
+                } else {
+                    User *user = dequeue(checkInQueue);
+                    push(workoutStack, user);
+                    printf("Enter exercise: ");
+                    scanf("%s", exercise);
+                    printf("Enter duration (in minutes): ");
+                    scanf("%d", &duration);
+                    addWorkout(user, exercise, duration);
+                    enqueue(checkInQueue, user->id, user->name);
+                }
+                break;
+            case 3:
+                if (checkInQueue->front == NULL) {
+                    printf("No users to check out.\n");
+                } else {
+                    User *user = dequeue(checkInQueue);
+                    printf("User ID: %d, Name: %s has checked out.\n", user->id, user->name);
+                    free(user);
+                }
+                break;
+            case 4:
+                printQueue(checkInQueue);
+                break;
+            case 5:
+                if (workoutStack->top == NULL) {
+                    printf("No workout logs to display.\n");
+                } else {
+                    User *user = pop(workoutStack);
+                    printWorkouts(user);
+                    push(workoutStack, user);
+                }
+                break;
+            case 6:
+                printf("Exiting...\n");
+                exit(0);
+            default:
+                printf("Invalid choice! Please try again.\n");
+        }
+    }
+    return 0;
+}
