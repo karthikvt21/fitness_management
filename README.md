@@ -1,7 +1,7 @@
 This C code implements a  fitness  management system using linked lists, queues, and stacks. It allows users to check in, track workouts, check out, view current users, and view workout logs.
 
 Data Structures-
-Queue: Implements a queue of users waiting to check in.
+Queue: Implements a queue of users waiting to check in
 Stack: Implements a stack of users whose workouts are being tracked.
 
 Functions-
